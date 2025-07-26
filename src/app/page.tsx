@@ -54,6 +54,7 @@ export default function Home() {
   const [categoryFilter, setCategoryFilter] = useState('すべて')
   const [storageFilter, setStorageFilter] = useState('すべて')
   const router = useRouter()
+  const [searchText, setSearchText] = useState('')
 
   
 
@@ -106,14 +107,20 @@ export default function Home() {
 
   const categories = Array.from(new Set(items.map(i => i.category || '未設定')))
   const storageLocations = Array.from(new Set(items.map(i => i.storage_location || '未設定')))
-  const filteredItems = items.filter(item => {
-  const matchStorage =
+  // 絞り込み条件に名前検索も追加
+    const filteredItems = items.filter(item => {
+      const matchStorage =
         storageFilter === 'すべて' ||
         (item.storage_location || '未設定') === storageFilter
+
       const matchCategory =
         categoryFilter === 'すべて' ||
         (item.category || '未設定') === categoryFilter
-      return matchStorage && matchCategory
+
+      const matchSearch =
+        item.name.toLowerCase().includes(searchText.toLowerCase())
+
+      return matchStorage && matchCategory && matchSearch
     })
 
   const groupedItems = filteredItems.reduce<Record<string, Item[]>>((acc, item) => {
@@ -128,46 +135,65 @@ export default function Home() {
       <Suspense fallback={null}>
         <SearchParamsWrapper />
       </Suspense>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">冷蔵庫の中身</h1>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-        <div>
-          <label className="mr-2 text-gray-600">カテゴリー:</label>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-green-50 border border-gray-300 hover:border-gray-500 px-3 py-2 rounded-md text-sm shadow-sm"
-          >
-            <option value="すべて">すべて</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
+      <div className="flex flex-col gap-2 mb-4">
+      {/* 1段目：タイトルと検索バーを横並び */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
+        <h1 className="text-2xl font-bold mb-2 sm:mb-0">冷蔵庫の中身</h1>
 
         <div>
-          <label className="mr-2 text-gray-600">保存場所:</label>
-          <select
-            value={storageFilter}
-            onChange={(e) => setStorageFilter(e.target.value)}
-            className="bg-blue-50 border border-gray-300 hover:border-gray-500 px-3 py-2 rounded-md text-sm shadow-sm"
-          >
-            <option value="すべて">すべて</option>
-            {storageLocations.map(loc => (
-              <option key={loc} value={loc}>{loc}</option>
-            ))}
-          </select>
+          <label className="mr-2 text-gray-600">食材名検索:</label>
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="例: トマト"
+            className="border border-gray-300 px-3 py-2 rounded-md w-full sm:w-64 shadow-sm"
+          />
         </div>
       </div>
-      </div>
-      
+    </div>
 
-      <Link
-        href="/items/new"
-        className="inline-block bg-green-600 text-white px-4 py-2 rounded mb-6"
-      >
-        ＋ 食材を追加する
-      </Link>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+        {/* 左側：追加ボタン */}
+        <Link
+          href="/items/new"
+          className="bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700"
+        >
+          ＋ 食材を追加する
+        </Link>
+
+        {/* 右側：フィルター群（横並び） */}
+        <div className="flex flex-wrap gap-4">
+          <div>
+            <label className="mr-2 text-gray-600">カテゴリー:</label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="bg-green-50 border border-gray-300 px-3 py-2 rounded-md text-sm shadow-sm"
+            >
+              <option value="すべて">すべて</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mr-2 text-gray-600">保存場所:</label>
+            <select
+              value={storageFilter}
+              onChange={(e) => setStorageFilter(e.target.value)}
+              className="bg-blue-50 border border-gray-300 px-3 py-2 rounded-md text-sm shadow-sm"
+            >
+              <option value="すべて">すべて</option>
+              {storageLocations.map((loc) => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
 
       {categoryOrder.map((category) => {
         const itemsInCategory = groupedItems[category]
