@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -24,13 +24,33 @@ function formatDate(dateStr: string | null): string {
   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
 }
 
+function getDaysLeft(expiryDate: string) {
+  const today = new Date()
+  const expiry = new Date(expiryDate)
+  const diffTime = expiry.getTime() - today.getTime()
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
+
+function SearchParamsWrapper() {
+  const searchParams = useSearchParams()
+  const success = searchParams.get('success')
+  const error = searchParams.get('error')
+
+  return (
+    <>
+      {success === 'added' && <Message type="success" text="✅ 食材を追加しました" />}
+      {success === 'true' && <Message type="success" text="✅ 食材を更新しました" />}
+      {success === 'deleted' && <Message type="success" text="✅ 食材を削除しました" />}
+      {error === 'delete' && <Message type="error" text="❌ 食材の削除に失敗しました" />}
+      {error === 'true' && <Message type="error" text="❌ エラーが発生しました" />}
+    </>
+  )
+}
+
 export default function Home() {
   const [items, setItems] = useState<Item[]>([])
   const [storageFilter, setStorageFilter] = useState('すべて')
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const success = searchParams.get('success')
-  const error = searchParams.get('error')
 
   const fetchItems = async () => {
     const { data, error } = await supabase
@@ -64,15 +84,7 @@ export default function Home() {
     }
   }
 
-  const getDaysLeft = (expiryDate: string) => {
-    const today = new Date()
-    const expiry = new Date(expiryDate)
-    const diffTime = expiry.getTime() - today.getTime()
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  }
-
   const storageLocations = Array.from(new Set(items.map(i => i.storage_location || '未設定')))
-
   const filteredItems = storageFilter === 'すべて'
     ? items
     : items.filter(item => (item.storage_location || '未設定') === storageFilter)
@@ -85,11 +97,9 @@ export default function Home() {
 
   return (
     <main className="p-4 max-w-2xl mx-auto">
-      {success === 'added' && <Message type="success" text="✅ 食材を追加しました" />}
-      {success === 'true' && <Message type="success" text="✅ 食材を更新しました" />}
-      {success === 'deleted' && <Message type="success" text="✅ 食材を削除しました" />}
-      {error === 'delete' && <Message type="error" text="❌ 食材の削除に失敗しました" />}
-      {error === 'true' && <Message type="error" text="❌ エラーが発生しました" />}
+      <Suspense fallback={null}>
+        <SearchParamsWrapper />
+      </Suspense>
 
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">冷蔵庫の中身</h1>
@@ -115,7 +125,6 @@ export default function Home() {
         ＋ 食材を追加する
       </Link>
 
-      {/* カテゴリーごとに分けて表示 */}
       {categoryOrder.map((category) => {
         const itemsInCategory = groupedItems[category]
         if (!itemsInCategory) return null
