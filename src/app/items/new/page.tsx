@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Message from '@/components/message'
+import Fuse from 'fuse.js'
 
 export default function NewItemPage() {
   const router = useRouter()
@@ -13,16 +14,22 @@ export default function NewItemPage() {
   const [suggestions, setSuggestions] = useState<string[]>([])
 
   useEffect(() => {
-  fetchItems()
-}, [])
+    fetchFoods()
+  }, [])
+  const [fuse, setFuse] = useState<Fuse<string> | null>(null)
+  const fetchFoods = async () => {
+    const { data } = await supabase.from('foods').select('name')
+    if (data) {
+      const uniqueNames = [...new Set(data.map(item => item.name))]
+      setAllNames(uniqueNames)
 
-const fetchItems = async () => {
-  const { data, error } = await supabase.from('items').select('name')
-  if (data) {
-    const uniqueNames = [...new Set(data.map(item => item.name))]
-    setAllNames(uniqueNames)
+      const fuseInstance = new Fuse(uniqueNames, {
+        includeScore: true,
+        threshold: 0.4,
+      })
+      setFuse(fuseInstance)
+    }
   }
-}
   const [form, setForm] = useState({
     name: '',
     quantity: 1,
@@ -49,24 +56,30 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   const categories = ['青果', '肉/加工品', '海鮮系', '乳製品', '飲み物', '調味料', '粉', '加工食品', '冷凍食品', '米', '乾麺', 'パン', 'その他']
   const units = ['個', 'g', 'kg', 'ml', 'L', '本', 'パック', '袋', '缶', '枚', '杯', '匹','その他']
   const storageOptions = ['冷蔵庫', '冷凍庫', '野菜室', '常温']
+  const [loading, setLoading] = useState(false)
   
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
+  setLoading(true)
 
   if (!form.name.trim()) {
     setMessage({ type: 'error', text: '食材名を入力してください' })
+    setLoading(false)
     return
   }
   if (!form.category) {
     setMessage({ type: 'error', text: 'カテゴリーを選択してください' })
+    setLoading(false)
     return
   }
   if (form.quantity <= 0) {
     setMessage({ type: 'error', text: '数量は1以上にしてください' })
+    setLoading(false)
     return
   }
   if (!form.unit) {
     setMessage({ type: 'error', text: '単位を選択してください' })
+    setLoading(false)
     return
   }
 
@@ -76,9 +89,28 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     console.error(error)
     setMessage({ type: 'error', text: '登録に失敗しました' })
   } else {
-    router.push('/?success=added') // 一覧ページへ成功通知付きで遷移
+    setMessage({ type: 'success', text: '登録が完了しました！' })
+
+    const stay = window.confirm('登録が完了しました。続けて登録しますか？')
+    if (stay) {
+      // 入力欄を初期化して残る
+      setForm({
+        name: '',
+        quantity: 1,
+        unit: '',
+        category: '',
+        storage_location: '',
+        expiry_date: '',
+      })
+      setSuggestions([])
+    } else {
+      // 一覧に戻る
+      router.push('/?success=added')
+    }
   }
+  setLoading(false)
 }
+
 
 
   return (
@@ -175,11 +207,12 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
         />
       <div className="flex justify-between mt-6">
         <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-        >
-          登録する
-        </button>
+            type="submit"
+            disabled={loading}
+            className={`bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition ${loading && 'opacity-50 cursor-not-allowed'}`}
+          >
+            {loading ? '登録中…' : '登録する'}
+          </button>
 
         <Link
           href="/"

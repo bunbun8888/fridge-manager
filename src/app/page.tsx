@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Message from '@/components/message'
+import { Menu } from '@headlessui/react'
+import { EllipsisVerticalIcon } from '@heroicons/react/24/outline'
 
 type Item = {
   id: string
@@ -234,55 +236,78 @@ export default function Home() {
               {category}
             </h2>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {itemsInCategory.map((item) => (
-                <li
-                  key={item.id}
-                  className={`bg-white rounded-xl p-4 shadow-md space-y-2 border-2 ${categoryBorderColors[item.category] ?? 'border-gray-300'}`}
-                >
+  {itemsInCategory.map((item) => (
+    <li
+      key={item.id}
+      className={`relative bg-white rounded-xl p-4 shadow-md space-y-2 border-2 ${categoryBorderColors[item.category] ?? 'border-gray-300'}`}
+    >
+      {/* 右上に3点メニューを配置 */}
+      <div className="absolute top-2 right-2">
+        <Menu as="div" className="relative inline-block text-left">
+          <Menu.Button className="p-2 rounded-full hover:bg-gray-100">
+            <EllipsisVerticalIcon className="h-5 w-5 text-gray-600" />
+          </Menu.Button>
+          <Menu.Items className="absolute right-0 z-10 mt-2 w-28 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+            <div className="py-1">
+              <Menu.Item>
+                {({ active }) => (
+                  <Link
+                    href={`/items/edit/${item.id}`}
+                    className={`block px-4 py-2 text-sm ${
+                      active ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                    }`}
+                  >
+                    編集
+                  </Link>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className={`block w-full text-left px-4 py-2 text-sm ${
+                      active ? 'bg-red-100 text-red-700' : 'text-gray-700'
+                    }`}
+                  >
+                    削除
+                  </button>
+                )}
+              </Menu.Item>
+            </div>
+          </Menu.Items>
+        </Menu>
+      </div>
 
-                  <div className={`font-semibold text-lg ${categoryTextColors[item.category] ?? ''}`}>
-                    {item.name}（{item.quantity}{item.unit}）
-                  </div>
-                  <div className={`text-sm ${
-                    item.expiry_date && new Date(item.expiry_date) < new Date()
-                      ? 'text-red-600 font-semibold'
-                      : getDaysLeft(item.expiry_date || '') <= 3
-                        ? 'text-orange-500 font-semibold'
-                        : 'text-gray-600'
-                  }`}>
-                    賞味期限: {formatDate(item.expiry_date)}
-                    {item.expiry_date && (
-                      <>
-                        <br />
-                        {(() => {
-                          const days = getDaysLeft(item.expiry_date)
-                          return days < 0
-                            ? '（期限切れ）'
-                            : `（あと${days}日）`
-                        })()}
-                      </>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-400 mt-1">
-                    保存場所: {item.storage_location || '未設定'}
-                  </div>
-                  <div className="mt-4 flex justify-end space-x-2">
-                    <Link
-                      href={`/items/edit/${item.id}`}
-                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
-                    >
-                      編集
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 transition"
-                    >
-                      削除
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+      <div className={`font-semibold text-lg ${categoryTextColors[item.category] ?? ''}`}>
+        {item.name}（{item.quantity}{item.unit}）
+      </div>
+      <div className={`text-sm ${
+        item.expiry_date && new Date(item.expiry_date) < new Date()
+          ? 'text-red-600 font-semibold'
+          : getDaysLeft(item.expiry_date || '') <= 3
+            ? 'text-orange-500 font-semibold'
+            : 'text-gray-600'
+      }`}>
+        賞味期限: {formatDate(item.expiry_date)}
+        {item.expiry_date && (
+          <>
+            <br />
+            {(() => {
+              const days = getDaysLeft(item.expiry_date)
+              return days < 0
+                ? '（期限切れ）'
+                : `（あと${days}日）`
+            })()}
+          </>
+        )}
+      </div>
+      <div className="text-sm text-gray-400 mt-1">
+        保存場所: {item.storage_location || '未設定'}
+      </div>
+    </li>
+  ))}
+</ul>
+
           </section>
         )
       })}
