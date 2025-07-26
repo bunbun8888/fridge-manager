@@ -176,7 +176,7 @@ export default function Home() {
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="例: トマト"
-            className="border border-gray-300 px-3 py-2 rounded-md w-full sm:w-64 shadow-sm"
+             className="border border-gray-300 bg-white px-3 py-2 rounded-md w-full sm:w-64 shadow-sm"
           />
         </div>
       </div>
