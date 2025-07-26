@@ -173,16 +173,22 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
           className="w-full border p-2 rounded"
           placeholder="賞味期限"
         />
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+      <div className="flex justify-between mt-6">
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
           登録する
         </button>
+
+        <Link
+          href="/"
+          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+        >
+          ← 一覧に戻る
+        </Link>
+      </div>
       </form>
-      <Link
-        href="/"
-        className="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition"
-      >
-        ← 一覧に戻る
-      </Link> 
     </main>
   )
 }
