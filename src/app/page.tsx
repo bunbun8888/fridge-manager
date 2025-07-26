@@ -18,6 +18,8 @@ type Item = {
 
 const categoryOrder = ['青果', '肉/加工品', '海鮮系', '乳製品', '飲み物', '調味料', '粉', '加工食品', '冷凍食品', '米', '乾麺', 'パン', 'その他']
 
+
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '未設定'
   const date = new Date(dateStr)
@@ -51,6 +53,7 @@ export default function Home() {
   const [items, setItems] = useState<Item[]>([])
   const [storageFilter, setStorageFilter] = useState('すべて')
   const router = useRouter()
+  
 
   const fetchItems = async () => {
     const { data, error } = await supabase
@@ -64,6 +67,21 @@ export default function Home() {
     } else {
       console.error(error)
     }
+  }
+
+  const categoryColors: Record<string, string> = {
+    '野菜': 'bg-green-100',
+    '肉/加工品': 'bg-red-100',
+    '海鮮系': 'bg-blue-100',
+    '乳製品': 'bg-yellow-100',
+    '飲み物': 'bg-teal-100',
+    '調味料': 'bg-orange-100',
+    '粉': 'bg-purple-100',
+    '加工食品': 'bg-pink-100',
+    '冷凍食品': 'bg-indigo-100',
+    '米': 'bg-lime-100',
+    '乾麺': 'bg-amber-100',
+    'その他': 'bg-gray-100',
   }
 
   useEffect(() => {
@@ -96,11 +114,11 @@ export default function Home() {
   }, {})
 
   return (
-    <main className="p-4 max-w-2xl mx-auto">
+    <main className="bg-lime-50 min-h-screen p-4">
+      <div className="max-w-2xl mx-auto">
       <Suspense fallback={null}>
         <SearchParamsWrapper />
       </Suspense>
-
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">冷蔵庫の中身</h1>
         <div>
@@ -117,6 +135,7 @@ export default function Home() {
           </select>
         </div>
       </div>
+      
 
       <Link
         href="/items/new"
@@ -134,7 +153,13 @@ export default function Home() {
             <h2 className="text-xl font-semibold border-b pb-1 mb-3">{category}</h2>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {itemsInCategory.map((item) => (
-                <li key={item.id} className="p-4 border rounded shadow-sm">
+                <li
+                  key={item.id}
+                  className={`p-4 border rounded shadow-sm ${
+                    categoryColors[item.category] ?? 'bg-white'
+                  }`}
+                >
+
                   <div className="font-semibold text-lg">
                     {item.name}（{item.quantity}{item.unit}）
                   </div>
@@ -181,6 +206,7 @@ export default function Home() {
           </section>
         )
       })}
+      </div>
     </main>
   )
 }

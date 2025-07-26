@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -9,7 +9,20 @@ import Message from '@/components/message'
 export default function NewItemPage() {
   const router = useRouter()
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [allNames, setAllNames] = useState<string[]>([])
+  const [suggestions, setSuggestions] = useState<string[]>([])
 
+  useEffect(() => {
+  fetchItems()
+}, [])
+
+const fetchItems = async () => {
+  const { data, error } = await supabase.from('items').select('name')
+  if (data) {
+    const uniqueNames = [...new Set(data.map(item => item.name))]
+    setAllNames(uniqueNames)
+  }
+}
   const [form, setForm] = useState({
     name: '',
     quantity: 1,
@@ -22,7 +35,17 @@ export default function NewItemPage() {
 const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
   const { name, value } = e.target;
   setForm(prev => ({ ...prev, [name]: value }));
-};
+
+  if (name === 'name') {
+    const filtered = allNames.filter(n => n.toLowerCase().includes(value.toLowerCase())).slice(0, 5)
+    setSuggestions(filtered)
+  }
+}
+ // 候補クリックで反映する関数
+  const handleSelectSuggestion = (name: string) => {
+    setForm(prev => ({ ...prev, name }))
+    setSuggestions([])
+  }
   const categories = ['青果', '肉/加工品', '海鮮系', '乳製品', '飲み物', '調味料', '粉', '加工食品', '冷凍食品', '米', '乾麺', 'パン', 'その他']
   const units = ['個', 'g', 'kg', 'ml', 'L', '本', 'パック', '袋', '缶', '枚', '杯', '匹','その他']
   const storageOptions = ['冷蔵庫', '冷凍庫', '野菜室', '常温']
@@ -65,6 +88,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
       )}
       <h1 className="text-2xl font-bold mb-4">食材の追加</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="relative">
         <input
           name="name"
           type="text"
@@ -74,6 +98,20 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
           required
           className="w-full border p-2 rounded"
         />
+        {suggestions.length > 0 && (
+          <ul className="absolute z-10 bg-white border border-gray-300 w-full mt-1 rounded shadow">
+            {suggestions.map((sug, index) => (
+              <li
+                key={index}
+                onClick={() => handleSelectSuggestion(sug)}
+                className="p-2 hover:bg-blue-100 cursor-pointer"
+              >
+                {sug}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
         <div className="flex space-x-2">
           <input
             name="quantity"
