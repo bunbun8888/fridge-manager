@@ -17,7 +17,21 @@ type Item = {
 }
 
 const categoryOrder = ['青果', '肉/加工品', '海鮮系', '乳製品', '飲み物', '調味料', '粉', '加工食品', '冷凍食品', '米', '乾麺', 'パン', 'その他']
-
+const categoryTextColors: Record<string, string> = {
+  '野菜': 'text-green-700',
+  '肉/加工品': 'text-red-700',
+  '海鮮系': 'text-blue-700',
+  '乳製品': 'text-yellow-700',
+  '飲み物': 'text-teal-700',
+  '調味料': 'text-orange-700',
+  '粉': 'text-purple-700',
+  '加工食品': 'text-pink-700',
+  '冷凍食品': 'text-indigo-700',
+  '米': 'text-lime-700',
+  '乾麺': 'text-amber-700',
+  'パン': 'text-rose-700',
+  'その他': 'text-gray-700',
+}
 
 
 function formatDate(dateStr: string | null): string {
@@ -86,6 +100,21 @@ export default function Home() {
     '乾麺': 'bg-amber-100',
     'その他': 'bg-gray-100',
   }
+  const categoryBorderColors: Record<string, string> = {
+  '野菜': 'border-green-400',
+  '肉/加工品': 'border-red-400',
+  '海鮮系': 'border-blue-400',
+  '乳製品': 'border-yellow-400',
+  '飲み物': 'border-teal-400',
+  '調味料': 'border-orange-400',
+  '粉': 'border-purple-400',
+  '加工食品': 'border-pink-400',
+  '冷凍食品': 'border-indigo-400',
+  '米': 'border-lime-400',
+  '乾麺': 'border-amber-400',
+  'パン': 'border-rose-400',
+  'その他': 'border-gray-400',
+}
 
   useEffect(() => {
     fetchItems()
@@ -201,17 +230,17 @@ export default function Home() {
 
         return (
           <section key={category} className="mb-8">
-            <h2 className="text-xl font-semibold border-b pb-1 mb-3">{category}</h2>
+            <h2 className={`text-xl font-semibold border-b pb-1 mb-3 ${categoryTextColors[category] ?? ''}`}>
+              {category}
+            </h2>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {itemsInCategory.map((item) => (
                 <li
                   key={item.id}
-                  className={`p-4 border rounded shadow-sm ${
-                    categoryColors[item.category] ?? 'bg-white'
-                  }`}
+                  className={`bg-white rounded-xl p-4 shadow-md space-y-2 border-2 ${categoryBorderColors[item.category] ?? 'border-gray-300'}`}
                 >
 
-                  <div className="font-semibold text-lg">
+                  <div className={`font-semibold text-lg ${categoryTextColors[item.category] ?? ''}`}>
                     {item.name}（{item.quantity}{item.unit}）
                   </div>
                   <div className={`text-sm ${
