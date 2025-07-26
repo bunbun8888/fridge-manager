@@ -51,8 +51,10 @@ function SearchParamsWrapper() {
 
 export default function Home() {
   const [items, setItems] = useState<Item[]>([])
+  const [categoryFilter, setCategoryFilter] = useState('すべて')
   const [storageFilter, setStorageFilter] = useState('すべて')
   const router = useRouter()
+
   
 
   const fetchItems = async () => {
@@ -102,10 +104,17 @@ export default function Home() {
     }
   }
 
+  const categories = Array.from(new Set(items.map(i => i.category || '未設定')))
   const storageLocations = Array.from(new Set(items.map(i => i.storage_location || '未設定')))
-  const filteredItems = storageFilter === 'すべて'
-    ? items
-    : items.filter(item => (item.storage_location || '未設定') === storageFilter)
+  const filteredItems = items.filter(item => {
+  const matchStorage =
+        storageFilter === 'すべて' ||
+        (item.storage_location || '未設定') === storageFilter
+      const matchCategory =
+        categoryFilter === 'すべて' ||
+        (item.category || '未設定') === categoryFilter
+      return matchStorage && matchCategory
+    })
 
   const groupedItems = filteredItems.reduce<Record<string, Item[]>>((acc, item) => {
     if (!acc[item.category]) acc[item.category] = []
@@ -121,12 +130,27 @@ export default function Home() {
       </Suspense>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">冷蔵庫の中身</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <div>
-          <label className="mr-2">保存場所:</label>
+          <label className="mr-2 text-gray-600">カテゴリー:</label>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="bg-green-50 border border-gray-300 hover:border-gray-500 px-3 py-2 rounded-md text-sm shadow-sm"
+          >
+            <option value="すべて">すべて</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="mr-2 text-gray-600">保存場所:</label>
           <select
             value={storageFilter}
             onChange={(e) => setStorageFilter(e.target.value)}
-            className="border px-2 py-1 rounded"
+            className="bg-blue-50 border border-gray-300 hover:border-gray-500 px-3 py-2 rounded-md text-sm shadow-sm"
           >
             <option value="すべて">すべて</option>
             {storageLocations.map(loc => (
@@ -134,6 +158,7 @@ export default function Home() {
             ))}
           </select>
         </div>
+      </div>
       </div>
       
 
