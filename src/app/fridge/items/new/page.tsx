@@ -13,7 +13,6 @@ export default function NewItemPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [allNames, setAllNames] = useState<string[]>([])
   const [suggestions, setSuggestions] = useState<string[]>([])
-  const [isListening, setIsListening] = useState(false)
 
   useEffect(() => {
     fetchFoods()
@@ -68,71 +67,6 @@ export default function NewItemPage() {
     if (kanji.length === 2 && kanji[0] === '十') return 10 + map[kanji[1]]
     if (kanji.length === 2 && kanji[1] === '十') return map[kanji[0]] * 10
     return map[kanji] ?? 1
-  }
-
-  const startSpeechRecognition = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SpeechRecognition) {
-      alert('このブラウザは音声認識に対応していません')
-      return
-    }
-
-    const recognition = new SpeechRecognition()
-    recognition.lang = 'ja-JP'
-    recognition.interimResults = false
-    recognition.maxAlternatives = 1
-
-    setIsListening(true)
-    recognition.start()
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results?.[0]?.[0]?.transcript ?? ''
-
-      if (!transcript) {
-        console.warn('音声認識結果が空です')
-        setIsListening(false)
-        return
-      }
-
-      const match = transcript.match(/([\d一二三四五六七八九十]+)(個|本|枚|匹|袋|缶|リットル|リッター|パック|g|グラム|kg|キロ|ml|ミリリットル|L|ℓ)?/)
-
-      let quantity = 1
-      let unit = ''
-      let name = transcript
-
-      if (match && match[1]) {
-        const rawQty = match[1]
-        quantity = isNaN(Number(rawQty)) ? japaneseToNumber(rawQty) : Number(rawQty)
-        unit = match[2] ?? ''
-        if (match[0]) {
-          name = transcript.replace(match[0], '').trim()
-        }
-      }
-
-      setForm(prev => ({
-        ...prev,
-        name,
-        quantity,
-        unit,
-      }))
-
-      if (fuse) {
-        const result = fuse.search(name)
-        const suggested = result.map(r => r.item).slice(0, 5)
-        setSuggestions(suggested)
-      }
-
-      setIsListening(false)
-    }
-
-    recognition.onerror = (event: any) => {
-      console.error('音声認識エラー:', event.error)
-      setIsListening(false)
-    }
-
-    recognition.onend = () => {
-      setIsListening(false)
-    }
   }
 
   const categories = ['青果', '肉/加工品', '海鮮系', '乳製品', '飲み物', '調味料', '粉', '加工食品', '冷凍食品', '米', '乾麺', 'パン', 'その他']
@@ -221,16 +155,6 @@ export default function NewItemPage() {
               ))}
             </ul>
           )}
-          <div className="flex items-center space-x-2 mt-1">
-            <button
-              type="button"
-              onClick={startSpeechRecognition}
-              className="text-sm text-blue-600 underline"
-            >
-              🎤 音声で入力
-            </button>
-            {isListening && <span className="text-gray-500 text-sm">聞き取り中...</span>}
-          </div>
         </div>
         <div className="flex space-x-2">
           <input
