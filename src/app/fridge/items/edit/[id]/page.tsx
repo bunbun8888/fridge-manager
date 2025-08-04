@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import FooterMenu from "@/components/FooterMenu";
 
 const categoryOptions = ['青果', '肉/加工品', '海鮮系', '乳製品', '飲み物', '調味料', '粉', '加工食品', '冷凍食品', '米', '乾麺', 'パン', 'その他']
 const unitOptions = ['個', 'g', 'kg', 'ml', 'L', '本', 'パック', '袋', '缶', '枚', '杯', '匹','その他']
@@ -71,7 +72,7 @@ export default function EditItemPage() {
       console.error(error)
       alert('更新に失敗しました')
     } else {
-      router.push('/?success=true')
+      router.push('/fridge/items?success=true')
     }
   }
 
@@ -150,22 +151,27 @@ export default function EditItemPage() {
           className="w-full border p-2 rounded"
         />
 
-        <div className="flex justify-between">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            更新する
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push('/?success=false')}
-            className="text-gray-600 hover:underline"
-          >
-            キャンセル
-          </button>
-        </div>
+        <div className="relative pb-24 mt-6">
+        {/* 更新ボタン（横幅いっぱい） */}
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          更新する
+        </button>
+
+        {/* キャンセルボタン（左下固定・控えめ） */}
+        <button
+          type="button"
+          onClick={() => router.push('/fridge/items?success=false')}
+          className="absolute bottom-4 left-4 text-sm text-gray-400 hover:text-gray-600"
+        >
+          ← キャンセル
+        </button>
+      </div>
+
       </form>
+      <FooterMenu />
     </main>
   )
 }

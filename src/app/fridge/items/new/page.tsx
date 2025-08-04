@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Message from '@/components/message'
 import Fuse from 'fuse.js'
+import FooterMenu from "@/components/FooterMenu";
 
 export default function NewItemPage() {
   const router = useRouter()
@@ -184,7 +185,7 @@ export default function NewItemPage() {
         })
         setSuggestions([])
       } else {
-        router.push('/?success=added')
+        router.push('/fridge/items?success=added')
       }
     }
     setLoading(false)
@@ -292,22 +293,29 @@ export default function NewItemPage() {
           className="w-full border p-2 rounded"
           placeholder="賞味期限"
         />
-        <div className="flex justify-between mt-6">
-          <button
-            type="submit"
-            disabled={loading}
-            className={`bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition ${loading && 'opacity-50 cursor-not-allowed'}`}
-          >
-            {loading ? '登録中…' : '登録する'}
-          </button>
-          <Link
-            href="/"
-            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
-          >
-            ← 一覧に戻る
-          </Link>
-        </div>
+        <div className="mt-6 pb-24 relative">
+        {/* 登録ボタン（横幅いっぱい） */}
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          {loading ? '登録中…' : '登録する'}
+        </button>
+
+        {/* 一覧に戻るボタン（左下固定・控えめ） */}
+        <Link
+          href="/fridge/items"
+          className="absolute bottom-4 left-4 text-sm text-gray-400 hover:text-gray-600"
+        >
+          ← 一覧に戻る
+        </Link>
+      </div>
+
       </form>
+      <FooterMenu />
     </main>
   )
 }
